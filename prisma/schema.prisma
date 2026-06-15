@@ -51,11 +51,17 @@ enum vendorpayout{
   Pending
   processed
 }
+enum OtpPurpose{
+  PasswordReset
+  EmailVerification
+  login
+}
 
 model user {
   id String @id @default(uuid())
   firstname String
   lastname String
+  username String @unique
   email String @unique
   password String
   phonenumber String
@@ -68,6 +74,7 @@ model user {
   wishlist wishlist[]
   cart cart?
   reviews review[]
+  otpTokens OtpToken[]
 }
 
 model Vendor{
@@ -267,4 +274,16 @@ model cartItem{
 
   cart cart @relation(fields: [cartId], references: [id])
   productVariant ProductVariant @relation(fields: [productvariantId], references: [id])
+}
+
+model OtpToken{
+  id String @id @default(uuid())
+  userId String
+  hash String
+  purpose OtpPurpose 
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  usedAt DateTime?
+
+  user user @relation(fields: [userId], references: [id])
 }
