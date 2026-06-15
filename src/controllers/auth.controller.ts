@@ -1,8 +1,18 @@
 import { Request, Response } from "express";
 import validator from "validator";
-import { createNewUser, findExistingUser, findLoginUser } from "../services/auth.service";
+import {
+  createAndSendOTP,
+  createNewUser,
+  findExistingUser,
+  findLoginUser,
+  resendOTPService,
+  resetPassword,
+  sendPasswordResetOTP,
+  verifyOTP,
+} from "../services/auth.service";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { OtpPurpose } from "../../generated/prisma/client";
 
 interface userRequest extends Request {
   userId?: string;
@@ -81,7 +91,7 @@ export const createUser = async (req: userRequest, res: Response) => {
       return;
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-    await createNewUser({
+    const newUser = await createNewUser({
       firstname,
       lastname,
       email,
@@ -89,8 +99,10 @@ export const createUser = async (req: userRequest, res: Response) => {
       password: hashedPassword,
       phonenumber,
     });
-    res.status(200).json({
-      message: "User created successfully",
+    await createAndSendOTP(newUser.id, email, OtpPurpose.EmailVerification);
+    res.status(201).json({
+      message:
+        "Account created. Please verify your email with the code sent to you.",
     });
   } catch (error) {
     console.log(error);
@@ -99,32 +111,117 @@ export const createUser = async (req: userRequest, res: Response) => {
     });
   }
 };
-export const loginUser = async (req: userRequest, res: Response) => { 
-    try {
-        const { identifier, password } = req.body;
-        const user = await findLoginUser(identifier);
-        if (!user) {
-            res.status(404).json({
-                message: "User not found"
-            })
-            return;
-        }
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            res.status(401).json({
-                message: "Invalid password"
-            })
-            return;
-        }
-        const { id, password: _, updatedAt, ...rest } = user;
-        const token = jwt.sign({userId:user.id,firstname:user.firstname},process.env.JWT_SECRET!,{expiresIn:"1h"});
-        res.status(200).json({
-            message: "Login successful",token,user:rest
-        })
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            message: "Internal server error"
-        })
+export const loginUser = async (req: userRequest, res: Response) => {
+  try {
+    const { identifier, password } = req.body;
+    const user = await findLoginUser(identifier);
+    if (!user) {
+      res.status(404).json({
+        message: "Invalid credentials",
+      });
+      return;
     }
-}
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      res.status(401).json({
+        message: "Invalid credentials",
+      });
+      return;
+    }
+    if (!user.isEmailVerified) {
+      res.status(403).json({
+        message: "Please verify your email first",
+      });
+      return;
+    }
+    const { id, password: _, updatedAt, ...rest } = user;
+    const token = jwt.sign(
+      { userId: user.id, firstname: user.firstname },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: rest,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Internal server error",
+    });
+  }
+};
+export const verifyEmail = async (req: userRequest, res: Response) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      res.status(400).json({ message: "Email and OTP are required" });
+      return;
+    }
+    const result = await verifyOTP(email, otp);
+    if (!result.success) {
+      res.status(400).json({ message: result.message });
+      return;
+    }
+    res.status(200).json({ message: result.message });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const resendOTP = async (req: userRequest, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: "Email is required" });
+      return;
+    }
+    const result = await resendOTPService(email);
+    if (!result.success) {
+      res.status(400).json({ message: result.message });
+      return;
+    }
+    res.status(200).json({ message: result.message });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const forgotPassword = async (req: userRequest, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: "Email is required" });
+      return;
+    }
+    const result = await sendPasswordResetOTP(email);
+    if (!result.success) {
+      res.status(400).json({ message: result.message });
+      return;
+    }
+    res.status(200).json({ message: result.message });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const resetUserPassword = async (req: userRequest, res: Response) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      res.status(400).json({ message: "All fields are required" });
+      return;
+    }
+    const result = await resetPassword(email, otp, newPassword);
+    if (!result.success) {
+      res.status(400).json({ message: result.message });
+      return;
+    }
+    res.status(200).json({ message: result.message });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

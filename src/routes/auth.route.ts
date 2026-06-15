@@ -1,8 +1,19 @@
 import { Router } from "express";
-import { createUser, loginUser } from "../controllers/auth.controller";
+import {
+  createUser,
+  forgotPassword,
+  loginUser,
+  resendOTP,
+  resetUserPassword,
+  verifyEmail,
+} from "../controllers/auth.controller";
 
 const route = Router();
 route.post("/register", createUser);
-route.get("/login", loginUser);
+route.post("/login", loginUser);
+route.post("/verify-email", verifyEmail);
+route.post("/resend-otp", resendOTP);
+route.post("/forgot-password", forgotPassword);
+route.post("/reset-password", resetUserPassword);
 
 export default route;
