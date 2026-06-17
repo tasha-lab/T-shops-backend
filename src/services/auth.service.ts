@@ -4,9 +4,7 @@ import { sendOTPEmail } from "../utils/sendemail.utils";
 import bcrypt from "bcryptjs";
 import { OtpPurpose, role } from "../../generated/prisma/client";
 
-interface userRequest extends Request {
-  userId?: string;
-}
+
 
 export const findExistingUser = async (email: string, username: string) => {
   return await client.user.findFirst({

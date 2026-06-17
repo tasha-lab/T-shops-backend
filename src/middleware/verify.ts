@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 interface userRequest extends Request {
   userId?: string;
+  role?: "Admin" | "Customer" | "Vendor";
 }
 
 export const verify = async (
@@ -28,8 +29,10 @@ export const verify = async (
   try {
     const secret = jwt.verify(token, process.env.JWT_SECRET!) as {
       userId: string;
+      role: "Admin" | "Customer" | "Vendor";
     };
     req.userId = secret.userId;
+    req.role = secret.role;
     next();
   } catch (error) {
     res.status(403).json({ message: "Please login first" });
