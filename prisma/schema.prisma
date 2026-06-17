@@ -26,15 +26,16 @@ enum productstatus{
 }
 enum orderstatus{
   Pending
-  confirmed
+  Confirmed
+  PartiallyShipped
   Shipped
   Delivered
   Cancelled
 }
 enum paymentstatus{
-  paid 
-  unpaid
-  refunded
+  Paid
+  Unpaid
+  Refunded
 }
 enum paymentProvider{
   Mpesa
@@ -45,16 +46,16 @@ enum paymentmodelstatus{
   Pending
   Completed
   Failed
-  refunded
+  Refunded
 }
 enum vendorpayout{
   Pending
-  processed
+  Processed
 }
 enum OtpPurpose{
   PasswordReset
   EmailVerification
-  login
+  Login
 }
 
 model user {
@@ -170,9 +171,9 @@ model ProductVariant {
 model Order {
   id String @id @default(uuid())
   userId String
-  totalAmount Float
+  totalAmount Decimal
   orderstatus orderstatus @default(Pending)
-  paymentStatus paymentstatus @default(unpaid)
+  paymentStatus paymentstatus @default(Unpaid)
   shippingAddressId Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -188,8 +189,9 @@ model OrderItem {
   vendorId String
   productvariantId String
   quantity Int
-  unitprice Float
-  totalprice Float
+  status orderstatus @default(Pending)
+  unitprice Decimal
+  totalprice Decimal
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -200,7 +202,7 @@ model OrderItem {
 model paymentmodel{
   id String @id @default(uuid())
   orderId String @unique
-  amount Float
+  amount Decimal
   status paymentmodelstatus @default(Pending)
   paymentProvider paymentProvider
   createdAt DateTime @default(now())
@@ -212,7 +214,7 @@ model paymentmodel{
 model vendorpayoutmodel{
   id String @id @default(uuid())
   vendorId String
-  amount Float
+  amount Decimal
   status vendorpayout @default(Pending)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -238,7 +240,7 @@ model discount {
   id String @id @default(uuid())
   code String @unique
   description String?
-  percentage Float
+  percentage Decimal
   startDate DateTime
   endDate DateTime
   isActive Boolean @default(true)
@@ -253,6 +255,7 @@ model wishlist {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([userId, productId])
   user user @relation(fields: [userId], references: [id])
   product product @relation(fields: [productId], references: [id])
 }
@@ -274,6 +277,7 @@ model cartItem{
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([cartId, productvariantId])
   cart cart @relation(fields: [cartId], references: [id])
   productVariant ProductVariant @relation(fields: [productvariantId], references: [id])
 }

@@ -20,7 +20,7 @@ interface userRequest extends Request {
 
 export const createUser = async (req: userRequest, res: Response) => {
   try {
-    const { firstname, lastname, email, username, password, phonenumber } =
+    const { firstname, lastname, email, username, password, phonenumber,role } =
       req.body;
     if (
       !firstname?.trim() ||
@@ -28,7 +28,8 @@ export const createUser = async (req: userRequest, res: Response) => {
       !email?.trim() ||
       !username?.trim() ||
       !password?.trim() ||
-      !phonenumber?.trim()
+      !phonenumber?.trim() ||
+      !role?.trim()
     ) {
       res.status(401).json({
         message: "All field must be filled correctly",
@@ -83,6 +84,11 @@ export const createUser = async (req: userRequest, res: Response) => {
       });
       return;
     }
+    const allowedRoles = ["Customer", "Vendor"];
+    if (!allowedRoles.includes(role)) {
+      res.status(400).json({ message: "Invalid role selection" });
+      return; 
+    }
     const existingUser = await findExistingUser(email, username);
     if (existingUser) {
       res.status(409).json({
@@ -98,6 +104,7 @@ export const createUser = async (req: userRequest, res: Response) => {
       username,
       password: hashedPassword,
       phonenumber,
+      role,
     });
     await createAndSendOTP(newUser.id, email, OtpPurpose.EmailVerification);
     res.status(201).json({

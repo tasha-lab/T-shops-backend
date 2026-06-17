@@ -2,7 +2,7 @@ import { client } from "../config/prismaClient";
 import { hashOTP, generateOTP, getOTPExpiry } from "../utils/otputils";
 import { sendOTPEmail } from "../utils/sendemail.utils";
 import bcrypt from "bcryptjs";
-import { OtpPurpose } from "../../generated/prisma/client";
+import { OtpPurpose, role } from "../../generated/prisma/client";
 
 interface userRequest extends Request {
   userId?: string;
@@ -23,6 +23,7 @@ export const createNewUser = async (userData: {
   username: string;
   password: string;
   phonenumber: string;
+  role: role;
 }) => {
   return await client.user.create({
     data: userData,
