@@ -30,6 +30,7 @@ async function seed() {
       lastname: "Admin",
       username: "superadmin",
       phonenumber: "0712345678",
+      isEmailVerified: true,
     },
   });
 

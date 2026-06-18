@@ -20,8 +20,15 @@ interface userRequest extends Request {
 
 export const createUser = async (req: userRequest, res: Response) => {
   try {
-    const { firstname, lastname, email, username, password, phonenumber,role } =
-      req.body;
+    const {
+      firstname,
+      lastname,
+      email,
+      username,
+      password,
+      phonenumber,
+      role,
+    } = req.body;
     if (
       !firstname?.trim() ||
       !lastname?.trim() ||
@@ -87,7 +94,7 @@ export const createUser = async (req: userRequest, res: Response) => {
     const allowedRoles = ["Customer", "Vendor"];
     if (!allowedRoles.includes(role)) {
       res.status(400).json({ message: "Invalid role selection" });
-      return; 
+      return;
     }
     const existingUser = await findExistingUser(email, username);
     if (existingUser) {
@@ -143,9 +150,9 @@ export const loginUser = async (req: userRequest, res: Response) => {
     }
     const { id, password: _, updatedAt, ...rest } = user;
     const token = jwt.sign(
-      { userId: user.id, firstname: user.firstname },
+      { userId: user.id, firstname: user.firstname, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
+      { expiresIn: "72h" }
     );
     res.status(200).json({
       message: "Login successful",
