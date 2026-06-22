@@ -1,4 +1,4 @@
-import { error } from "node:console";
+// import { error } from "node:console";
 import { client } from "../config/prismaClient";
 import slugify from "slugify";
 
