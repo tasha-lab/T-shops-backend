@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import {
   createCategoryService,
+  deleteCategoryService,
   getAllCategories,
   getCategoryService,
   updateCategoryService,
@@ -144,6 +145,52 @@ export const updateACategory = async (req: UserRequest, res: Response) => {
     console.log(error);
     res.status(500).json({
       message: "Internal server error",
+    });
+  }
+};
+export const deleteCategory = async (req: UserRequest, res: Response) => {
+  try {
+    const id = req.userId;
+    if (!id) {
+      res.status(401).json({
+        message: "Please login",
+      });
+      return;
+    }
+    const slug = req.params.slug as string;
+    const role = req.role;
+    if (role !== "Admin") {
+      res.status(403).json({
+        message: "You are not authorized to delete a category",
+      });
+      return;
+    }
+    await deleteCategoryService(slug);
+    res.status(200).json({
+      message: "Category deleted successfully",
+    });
+  } catch (error: any) {
+    console.log(error);
+    if (error.message == "CategorynotFound") {
+      res.status(400).json({
+        message: "This category does not exists",
+      });
+      return;
+    }
+    if (error.message == "CategoryHasChildren") {
+      res.status(400).json({
+        message: "Can't delete a category with children",
+      });
+      return;
+    }
+    if (error.message == "CategoryHasProducts") {
+      res.status(400).json({
+        message: "Can't delete a category with products",
+      });
+      return;
+    }
+    res.status(500).json({
+      message: "Internal server Error",
     });
   }
 };

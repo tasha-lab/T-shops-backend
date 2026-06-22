@@ -91,3 +91,19 @@ export const updateCategoryService = async (
     },
   });
 };
+export const deleteCategoryService=async(slug:string)=>{
+  const category = await client.category.findUnique({
+    where:{slug},
+    include:{
+      children:true,
+      products:true
+    }
+  })
+  if(!category) throw new Error("CategorynotFound")
+  if(category.children.length>0) throw new Error("CategoryHasChildren")
+  if(category.products.length>0)throw new Error("CategoryHasProducts")
+  const deletingCategory = await client.category.delete({
+    where:{slug}
+  })
+  return deletingCategory
+}
