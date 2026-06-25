@@ -10,7 +10,7 @@ export const createVendorService = async (
 ) => {
   const vendor = await client.vendor.create({
     data: {
-      userId,  
+      userId,
       shopname,
       shopdescription,
       mpesaNumber,
@@ -19,4 +19,10 @@ export const createVendorService = async (
     },
   });
   return vendor;
+};
+export const getVendor = async () => {
+  const vendors = await client.vendor.findMany({
+    where: { status: "Active" },
+  });
+  return vendors;
 };

@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createVendorService } from "../services/vendor.service";
+import { createVendorService, getVendor } from "../services/vendor.service";
 
 interface userRequest extends Request {
   userId?: string;
@@ -33,6 +33,26 @@ export const createVendor = async (req: userRequest, res: Response) => {
     console.log(error);
     res.status(500).json({
       message: "Internal Server error",
+    });
+  }
+};
+export const getVendorsList = async (req: userRequest, res: Response) => {
+  try {
+    const id = req.userId;
+    if (!id) {
+      res.status(401).json({
+        message: "Please Login",
+      });
+      return;
+    }
+    const approvedVendors = await getVendor();
+    res.status(200).json({
+      message: "Vendors gotten successfully",
+      approvedVendors,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Internal server Error",
     });
   }
 };

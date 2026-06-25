@@ -3,7 +3,8 @@ import { listen } from "node:quic";
 import authRoutes from "./routes/auth.route";
 import categoryRoutes from "./routes/categories.route";
 import productRoutes from "./routes/products.route";
-import vendorController from "./routes/vendor.route";
+import vendorRoutes from "./routes/vendor.route";
+import adminRoutes from "./routes/admin.route";
 
 const app = express();
 app.use(express.json());
@@ -16,8 +17,9 @@ app.get("/", async (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/category", categoryRoutes);
-app.use("/api/vendor", vendorController);
+app.use("/api/vendor", vendorRoutes);
 app.use("/api/product", productRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.listen(port, () => {
   console.log(`port ${port} is working`);
