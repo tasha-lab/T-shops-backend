@@ -5,6 +5,7 @@ import categoryRoutes from "./routes/categories.route";
 import productRoutes from "./routes/products.route";
 import vendorRoutes from "./routes/vendor.route";
 import adminRoutes from "./routes/admin.route";
+import cartRoutes from "./routes/cart.route"
 
 const app = express();
 app.use(express.json());
@@ -20,6 +21,7 @@ app.use("/api/category", categoryRoutes);
 app.use("/api/vendor", vendorRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/cart",cartRoutes)
 
 app.listen(port, () => {
   console.log(`port ${port} is working`);

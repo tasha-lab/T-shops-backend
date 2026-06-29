@@ -36,6 +36,19 @@ export const getAllProducts = async () => {
           shopname: true,
         },
       },
+      productVariant: {
+        select: {
+          id: true,
+          sku: true,
+          price: true,
+          stockQty: true,
+        },
+      },
+      productImage: {
+        select: {
+          url: true,
+        },
+      },
     },
   });
 };
@@ -87,10 +100,10 @@ export const deleteThisProduct = async (id: string) => {
   await client.productVariant.deleteMany({ where: { productId: id } });
   await client.product.delete({ where: { id } });
 };
-export const vendorsProduct = async(userId:string)=>{
+export const vendorsProduct = async (userId: string) => {
   const vendor = await client.vendor.findUnique({ where: { userId } });
   if (!vendor) throw new Error("VendorNotFound");
   return await client.product.findMany({
-    where:{vendorId:vendor.id}
-  })
-}
+    where: { vendorId: vendor.id },
+  });
+};
