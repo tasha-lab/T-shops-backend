@@ -58,3 +58,33 @@ export const gettingItems = async (userId: string) => {
     },
   });
 };
+export const updateQuantity = async (itemId: string, quantity: number) => {
+  const existingItem = await client.cartItem.findUnique({
+    where: { id: itemId },
+  });
+  if (!existingItem) throw new Error("ProductNotFoundInCart");
+  return await client.cartItem.update({
+    where: { id: itemId },
+    data: {
+      quantity,
+    },
+  });
+};
+export const deleteOneItem = async (itemId: string) => {
+  const existingItem = await client.cartItem.findUnique({
+    where: { id: itemId },
+  });
+  if (!existingItem) throw new Error("ProductNotFoundInCart");
+  return await client.cartItem.delete({
+    where: { id: itemId },
+  });
+};
+export const clearIndividualsCart = async (userId: string) => {
+  const cart = await client.cart.findFirst({
+    where: { userId },
+  });
+  if (!cart) throw new Error("CartNotFound");
+  return await client.cartItem.deleteMany({
+    where: { cartId: cart.id },
+  });
+};
